@@ -21,7 +21,12 @@ let RabbitMQController = class RabbitMQController {
         this.rabbit = rabbit;
     }
     async receber(body) {
-        console.log('Webhook recebido:', body);
+        console.log('Payload', body);
+        this.rabbit.enviar(body);
+        return { status: 'Recebido e enfileirado' };
+    }
+    async receberVarias(body) {
+        console.log('Payload', body);
         this.rabbit.enviar(body);
         return { status: 'Recebido e enfileirado' };
     }
@@ -34,6 +39,13 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], RabbitMQController.prototype, "receber", null);
+__decorate([
+    (0, common_1.Post)('scrapingVarias'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], RabbitMQController.prototype, "receberVarias", null);
 exports.RabbitMQController = RabbitMQController = __decorate([
     (0, common_1.Controller)(),
     __metadata("design:paramtypes", [producer_service_1.RabbitMQProducer])
