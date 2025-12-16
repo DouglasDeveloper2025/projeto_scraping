@@ -5,4 +5,7 @@ export declare class RabbitMQController {
     receber(body: any): Promise<{
         status: string;
     }>;
+    receberVarias(body: any): Promise<{
+        status: string;
+    }>;
 }

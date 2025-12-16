@@ -10,6 +10,7 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
+const conn_1 = require("./db/conn");
 const rabbitmq_module_1 = require("./rabbitmq/rabbitmq.module");
 const producer_service_1 = require("./rabbitmq/producer.service");
 let AppModule = class AppModule {
@@ -17,7 +18,7 @@ let AppModule = class AppModule {
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [rabbitmq_module_1.RabbitMQModule],
+        imports: [rabbitmq_module_1.RabbitMQModule, conn_1.DatabaseModule],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService, producer_service_1.RabbitMQProducer],
     })
