@@ -13,13 +13,14 @@ const app_service_1 = require("./app.service");
 const conn_1 = require("./db/conn");
 const rabbitmq_module_1 = require("./rabbitmq/rabbitmq.module");
 const producer_service_1 = require("./rabbitmq/producer.service");
+const rabbitmq_controller_1 = require("./rabbitmq/rabbitmq.controller");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [rabbitmq_module_1.RabbitMQModule, conn_1.DatabaseModule],
-        controllers: [app_controller_1.AppController],
+        controllers: [app_controller_1.AppController, rabbitmq_controller_1.RabbitMQController],
         providers: [app_service_1.AppService, producer_service_1.RabbitMQProducer],
     })
 ], AppModule);

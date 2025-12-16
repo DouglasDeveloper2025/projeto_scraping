@@ -8,7 +8,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         name: 'RABBITMQ_SERVICE',
         transport: Transport.RMQ,
         options: {
-          urls: ['amqp://admin:123456@localhost:5672'],
+          urls: ['amqp://guest:guest@localhost:5672'],
           queue: 'scraping',
           queueOptions: {
             durable: true,
