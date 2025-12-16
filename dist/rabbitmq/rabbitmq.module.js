@@ -20,7 +20,7 @@ exports.RabbitMQModule = RabbitMQModule = __decorate([
                     name: 'RABBITMQ_SERVICE',
                     transport: microservices_1.Transport.RMQ,
                     options: {
-                        urls: ['amqp://admin:123456@localhost:5672'],
+                        urls: ['amqp://guest:guest@localhost:5672'],
                         queue: 'scraping',
                         queueOptions: {
                             durable: true,
