@@ -9,6 +9,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RabbitMQModule = void 0;
 const common_1 = require("@nestjs/common");
 const microservices_1 = require("@nestjs/microservices");
+const producer_service_1 = require("./producer.service");
+const consumer_service_1 = require("./consumer.service");
 let RabbitMQModule = class RabbitMQModule {
 };
 exports.RabbitMQModule = RabbitMQModule;
@@ -29,7 +31,9 @@ exports.RabbitMQModule = RabbitMQModule = __decorate([
                 },
             ]),
         ],
-        exports: [microservices_1.ClientsModule],
+        controllers: [],
+        providers: [producer_service_1.RabbitMQProducer, consumer_service_1.ConsumerService],
+        exports: [microservices_1.ClientsModule, producer_service_1.RabbitMQProducer, consumer_service_1.ConsumerService],
     })
 ], RabbitMQModule);
 //# sourceMappingURL=rabbitmq.module.js.map

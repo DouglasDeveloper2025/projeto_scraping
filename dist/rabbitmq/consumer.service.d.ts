@@ -1,4 +1,5 @@
-import { RmqContext } from '@nestjs/microservices';
-export declare class Scraping {
-    handle(data: unknown, context: RmqContext): void;
+import { ScrapingPayloadDto } from '../rabbitmq/dto/scraping.dto';
+export declare class ConsumerService {
+    private readonly logger;
+    handleMessage(payload: ScrapingPayloadDto): Promise<any>;
 }

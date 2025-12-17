@@ -1,27 +1,55 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Controller } from '@nestjs/common';
-import {
-  Ctx,
-  MessagePattern,
-  Payload,
-  RmqContext,
-} from '@nestjs/microservices';
-import type { Channel, ConsumeMessage } from 'amqplib';
+import { Injectable, Logger } from '@nestjs/common';
+import { spawn } from 'child_process';
+import { ScrapingPayloadDto } from '../rabbitmq/dto/scraping.dto';
 
-@Controller()
-export class Scraping {
-  @MessagePattern('processar_scraping')
-  handle(@Payload() data: unknown, @Ctx() context: RmqContext): void {
-    const channel = context.getChannelRef();
-    const message = context.getMessage();
+@Injectable()
+export class ConsumerService {
+  private readonly logger = new Logger(ConsumerService.name);
 
-    if (!channel || !message) {
-      return;
-    }
+  async handleMessage(payload: ScrapingPayloadDto): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.logger.log(`Received payload: ${JSON.stringify(payload)}`);
+      const process = spawn('python', [
+        'src/scraping/scraper.py',
+        JSON.stringify(payload),
+      ]);
+      let output = '';
+      let error = '';
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    (channel as Channel).ack(message as ConsumeMessage);
+      process.stdout.on('data', (data) => {
+        output += data.toString();
+      });
 
-    console.log('📩 Mensagem recebida (stub):', data);
+      process.stderr.on('data', (data) => {
+        error += data.toString();
+      });
+
+      process.on('close', (code) => {
+        if (code !== 0) {
+          this.logger.error(`Python script exited with code ${code}.`);
+          this.logger.error(`Payload: ${JSON.stringify(payload)}`);
+          this.logger.error(`Stderr: ${error}`);
+          return reject(new Error(`Scraping failed: ${error}`));
+        }
+
+        if (error) {
+          this.logger.warn(`Python script stderr: ${error}`);
+        }
+
+        try {
+          // Garante que a saída não esteja vazia antes de fazer o parse
+          if (output.trim() === '') {
+            this.logger.warn('Python script returned empty output.');
+            return resolve({});
+          }
+          resolve(JSON.parse(output));
+        } catch (e) {
+          this.logger.error('Failed to parse Python script output as JSON.');
+          this.logger.error(`Payload: ${JSON.stringify(payload)}`);
+          this.logger.error(`Stdout: ${output}`);
+          reject(new Error('Failed to parse scraper output.'));
+        }
+      });
+    });
   }
 }
