@@ -19,6 +19,13 @@ export class RabbitMQController {
     return { status: 'Recebido e enfileirado' };
   }
 
+  @Post('scraping/mais')
+  async receberVarios(@Body() body: ScrapingPayloadDto[]) {
+    this.rabbit.enviar(body);
+
+    return { status: 'Recebido e enfileirado' };
+  }
+
   @EventPattern('scraping')
   async handleQueueMessage(@Payload() data: ScrapingPayloadDto, @Ctx() context: RmqContext) {
     console.log('Payload recebido da fila:', data);

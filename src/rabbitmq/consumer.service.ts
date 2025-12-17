@@ -8,7 +8,6 @@ export class ConsumerService {
 
   async handleMessage(payload: ScrapingPayloadDto): Promise<any> {
     return new Promise((resolve, reject) => {
-      this.logger.log(`Received payload: ${JSON.stringify(payload)}`);
       const process = spawn('python', [
         'src/scraping/scraper.py',
         JSON.stringify(payload),
@@ -23,31 +22,30 @@ export class ConsumerService {
       process.stderr.on('data', (data) => {
         error += data.toString();
       });
-
+ 
       process.on('close', (code) => {
         if (code !== 0) {
-          this.logger.error(`Python script exited with code ${code}.`);
+          this.logger.error(`O script Python saiu com o código ${code}.`);
           this.logger.error(`Payload: ${JSON.stringify(payload)}`);
           this.logger.error(`Stderr: ${error}`);
           return reject(new Error(`Scraping failed: ${error}`));
         }
-
+ 
         if (error) {
-          this.logger.warn(`Python script stderr: ${error}`);
+          this.logger.warn(`O script Python retornou Vazio..`);
         }
 
         try {
-          // Garante que a saída não esteja vazia antes de fazer o parse
           if (output.trim() === '') {
-            this.logger.warn('Python script returned empty output.');
+            this.logger.warn('O script Python retornou Vazio..');
             return resolve({});
           }
           resolve(JSON.parse(output));
         } catch (e) {
-          this.logger.error('Failed to parse Python script output as JSON.');
+          this.logger.error('Falha ao analisar a saída do script Python como JSON.');
           this.logger.error(`Payload: ${JSON.stringify(payload)}`);
           this.logger.error(`Stdout: ${output}`);
-          reject(new Error('Failed to parse scraper output.'));
+          reject(new Error('Falha ao analisar a saída do script Python como JSON.'));
         }
       });
     });

@@ -13,6 +13,7 @@ async function bootstrap() {
         durable: true,
       },
       noAck: false,
+      prefetchCount: 100,
     },
   });
   await app.startAllMicroservices();
