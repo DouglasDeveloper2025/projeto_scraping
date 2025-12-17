@@ -19,14 +19,15 @@ BATCH_DELAY = 15
 ITENS_POR_PAGINA = 48
 MAX_PAGES = 42
 
-COOKIE_FILE = "cookies.json"
+COOKIE_FILE = "./json/cookies.json"
+
 PROXY_BAD_FILE = "json/proxys_bad.json"
 RESULTADOS_DIR = "Arquivos"
 ERRORS_DIR = "errors"
 
-# os.makedirs(RESULTADOS_DIR, exist_ok=True)
+os.makedirs(RESULTADOS_DIR, exist_ok=True)
 # os.makedirs(ERRORS_DIR, exist_ok=True)
-# os.makedirs("json", exist_ok=True)
+os.makedirs("json", exist_ok=True)
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/123.0.0.0 Safari/537.36",
@@ -74,9 +75,9 @@ class ProxyManager:
 
 
 async def run(payload: dict):
-    print(payload)
-    termos = payload.get("termos") or payload.get("payload")
-    proxy = payload.get("proxy")
+    data = payload.get("payload", {})
+    termos = data.get("termos")
+    proxy = data.get("proxy")
 
     try:
         proxy_manager = ProxyManager(proxy)
@@ -87,7 +88,11 @@ async def run(payload: dict):
 
         print(f"Iniciando scraper para: {termos}", file=sys.stderr)
 
-        cookies_raw = load_json(COOKIE_FILE, {})
+        if isinstance(COOKIE_FILE, dict):
+            cookies_raw = COOKIE_FILE
+        else:
+            cookies_raw = load_json(COOKIE_FILE, {})
+
         cookies = (
             {c["name"]: c["value"] for c in cookies_raw}
             if isinstance(cookies_raw, list)
@@ -145,7 +150,25 @@ async def run(payload: dict):
             try:
                 soup = BeautifulSoup(html, "html.parser")
 
+                # Debug: Salvar HTML formatado se necessário, mas em variavel separada
+                html_debug = soup.prettify()
+                save_json(
+                    "soup_debug.json", html_debug
+                )  # Isso ainda pode falhar se save_json esperar dict
+
+                if "suspicious-traffic" in html or "all/catch_all" in html:
+                    print(
+                        "BLOQUEIO DETECTADO: Mercado Livre retornou pagina de 'suspicious traffic' ou CAPTCHA.",
+                        file=sys.stderr,
+                    )
+                    print(
+                        "SUGESTAO: Atualize os cookies no arquivo 'cookies.json' ou troque o Proxy.",
+                        file=sys.stderr,
+                    )
+                    return None
+
                 script = soup.find("script", id="__PRELOADED_STATE__")
+
                 if not script or not script.string:
                     print(
                         "Script __PRELOADED_STATE__ nao encontrado ou vazio.",
@@ -157,7 +180,10 @@ async def run(payload: dict):
                 start = raw.find("{")
                 end = raw.rfind("}")
                 if start == -1 or end == -1 or end <= start:
-                    print("JSON invalido dentro do script.", file=sys.stderr)
+                    print(
+                        "__PRELOADED_STATE__ nao encontrado ou vazio.",
+                        file=sys.stderr,
+                    )
                     return None
 
                 data = json.loads(raw[start : end + 1])
@@ -362,7 +388,7 @@ async def run(payload: dict):
             primeira = await fetch_page(session, primeira_url, termos, 1, cookies)
 
             if not primeira:
-                print(f"Falha ao obter primeira página para: {termos}", file=sys.stderr)
+                print(f"Falha ao obter primeira pagina para: {termos}", file=sys.stderr)
                 return
 
             total_paginas = min(primeira["paginacao"]["paginas"], MAX_PAGES)
@@ -406,9 +432,8 @@ async def run(payload: dict):
                 "dados": todas_paginas,
             }
 
-            # fname = termos.replace(" ", "_")
-            # save_json(os.path.join(RESULTADOS_DIR, f"{fname}.json"), output)
-            # print(f"{termos}: {len(produtos)} produtos")
+            with open("arquivos/output.json", "w", encoding="utf-8") as f:
+                json.dump(output, f, indent=2, ensure_ascii=False)
 
             return output
 

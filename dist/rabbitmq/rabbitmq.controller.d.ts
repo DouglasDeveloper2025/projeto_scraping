@@ -9,5 +9,8 @@ export declare class RabbitMQController {
     receber(body: ScrapingPayloadDto): Promise<{
         status: string;
     }>;
+    receberVarios(body: ScrapingPayloadDto[]): Promise<{
+        status: string;
+    }>;
     handleQueueMessage(data: ScrapingPayloadDto, context: RmqContext): Promise<void>;
 }

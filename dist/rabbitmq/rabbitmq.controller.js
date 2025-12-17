@@ -29,6 +29,10 @@ let RabbitMQController = class RabbitMQController {
         this.rabbit.enviar(body);
         return { status: 'Recebido e enfileirado' };
     }
+    async receberVarios(body) {
+        this.rabbit.enviar(body);
+        return { status: 'Recebido e enfileirado' };
+    }
     async handleQueueMessage(data, context) {
         console.log('Payload recebido da fila:', data);
         const result = await this.consumer.handleMessage(data);
@@ -46,6 +50,13 @@ __decorate([
     __metadata("design:paramtypes", [scraping_dto_1.ScrapingPayloadDto]),
     __metadata("design:returntype", Promise)
 ], RabbitMQController.prototype, "receber", null);
+__decorate([
+    (0, common_1.Post)('scraping/mais'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Array]),
+    __metadata("design:returntype", Promise)
+], RabbitMQController.prototype, "receberVarios", null);
 __decorate([
     (0, microservices_1.EventPattern)('scraping'),
     __param(0, (0, microservices_1.Payload)()),

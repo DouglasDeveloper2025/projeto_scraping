@@ -14,6 +14,7 @@ async function bootstrap() {
       },
       prefetchCount: 100,
       noAck: false,
+      prefetchCount: 100,
     },
   });
   await app.startAllMicroservices();
