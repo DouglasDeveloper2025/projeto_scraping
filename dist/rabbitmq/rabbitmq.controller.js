@@ -15,20 +15,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RabbitMQController = void 0;
 const common_1 = require("@nestjs/common");
 const producer_service_1 = require("./producer.service");
+const scraping_dto_1 = require("./dto/scraping.dto");
+const consumer_service_1 = require("./consumer.service");
+const microservices_1 = require("@nestjs/microservices");
 let RabbitMQController = class RabbitMQController {
     rabbit;
-    constructor(rabbit) {
+    consumer;
+    constructor(rabbit, consumer) {
         this.rabbit = rabbit;
+        this.consumer = consumer;
     }
     async receber(body) {
-        console.log('Payload', body);
         this.rabbit.enviar(body);
         return { status: 'Recebido e enfileirado' };
     }
-    async receberVarias(body) {
-        console.log('Payload', body);
-        this.rabbit.enviar(body);
-        return { status: 'Recebido e enfileirado' };
+    async handleQueueMessage(data, context) {
+        console.log('Payload recebido da fila:', data);
+        const result = await this.consumer.handleMessage(data);
+        console.log('Resultado do scraping:', JSON.stringify(result, null, 2));
+        const channel = context.getChannelRef();
+        const originalMsg = context.getMessage();
+        channel.ack(originalMsg);
     }
 };
 exports.RabbitMQController = RabbitMQController;
@@ -36,18 +43,20 @@ __decorate([
     (0, common_1.Post)('scraping'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [scraping_dto_1.ScrapingPayloadDto]),
     __metadata("design:returntype", Promise)
 ], RabbitMQController.prototype, "receber", null);
 __decorate([
-    (0, common_1.Post)('scrapingVarias'),
-    __param(0, (0, common_1.Body)()),
+    (0, microservices_1.EventPattern)('scraping'),
+    __param(0, (0, microservices_1.Payload)()),
+    __param(1, (0, microservices_1.Ctx)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [scraping_dto_1.ScrapingPayloadDto, microservices_1.RmqContext]),
     __metadata("design:returntype", Promise)
-], RabbitMQController.prototype, "receberVarias", null);
+], RabbitMQController.prototype, "handleQueueMessage", null);
 exports.RabbitMQController = RabbitMQController = __decorate([
     (0, common_1.Controller)(),
-    __metadata("design:paramtypes", [producer_service_1.RabbitMQProducer])
+    __metadata("design:paramtypes", [producer_service_1.RabbitMQProducer,
+        consumer_service_1.ConsumerService])
 ], RabbitMQController);
 //# sourceMappingURL=rabbitmq.controller.js.map
