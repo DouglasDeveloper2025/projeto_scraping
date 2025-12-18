@@ -1,4 +1,6 @@
 export declare class ScrapingPayloadDto {
-    termos: string;
-    proxy?: string;
+    payload: {
+        termos: string;
+        proxy?: string;
+    };
 }

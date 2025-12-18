@@ -13,8 +13,8 @@ async function bootstrap() {
             queueOptions: {
                 durable: true,
             },
-            noAck: false,
             prefetchCount: 100,
+            noAck: false,
         },
     });
     await app.startAllMicroservices();
